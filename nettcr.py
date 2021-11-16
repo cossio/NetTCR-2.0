@@ -34,17 +34,20 @@ parser.add_argument("-te", "--testfile", help="Specify the full path of the file
 parser.add_argument("-c", "--chain", default="ab", help="Specify the chain(s) to use (a, b, ab). Default: ab")
 parser.add_argument("-o", "--outfile", default=sys.stdout, help="Specify output file")
 parser.add_argument("-e", "--epochs", default=100, type=int, help="Specify the number of epochs")
+parser.add_argument("-s", "--separator", default=',', type=str, help="Field separator in CSV files")
 args = parser.parse_args()
 
 EPOCHS = int(args.epochs)
 chain = args.chain
-if chain!=["a","b","ab"]:
+if chain not in ["a","b","ab"]:
     print("Invalid chain. You can select a (alpha), b (beta), ab (alpha+beta)")
 
 print('Loading and encoding the data..')
-train_data = pd.read_csv(args.trainfile)
-test_data = pd.read_csv(args.testfile)
+train_data = pd.read_csv(args.trainfile, sep=args.separator)
+test_data = pd.read_csv(args.testfile, sep=args.separator)
 
+print("train data columns: ", train_data.columns)
+print("test data columns: ", test_data.columns)
 
 # Encode data
 encoding = utils.blosum50_20aa
@@ -78,11 +81,11 @@ elif chain=="a":
     mdl = nettcr_one_chain()
 elif chain=="b":
     pep_train = utils.enc_list_bl_max_len(train_data.peptide, encoding, 9)
-    tcrb_train = utils.enc_list_bl_max_len(train_data.CDR3b, encoding, 30)
+    tcrb_train = utils.enc_list_bl_max_len(train_data.CDR3, encoding, 30)
     y_train = np.array(train_data.binder)
 
     pep_test = utils.enc_list_bl_max_len(test_data.peptide, encoding, 9)
-    tcrb_test = utils.enc_list_bl_max_len(test_data.CDR3b, encoding, 30)
+    tcrb_test = utils.enc_list_bl_max_len(test_data.CDR3, encoding, 30)
     train_inputs = [tcrb_train, pep_train]
     test_inputs = [tcrb_test, pep_test]
     mdl = nettcr_one_chain()
